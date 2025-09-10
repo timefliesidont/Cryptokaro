@@ -40,15 +40,15 @@ Follow these steps to build and run the application on your local machine.
 
 4. Additionally, you need the platform-specific development libraries for Webview:
 
-    * macOS: Xcode Command Line Tools are required.
+    * **macOS:** Xcode Command Line Tools are required.
 
-    Install by running: xcode-select --install
+        - Install by running: xcode-select --install
 
-    * Linux (Debian/Ubuntu): The WebKit2GTK development library is required.
+    * **Linux (Debian/Ubuntu):** The WebKit2GTK development library is required.
 
-    Install by running: sudo apt-get install libwebkit2gtk-4.0-dev
+        - Install by running: sudo apt-get install libwebkit2gtk-4.0-dev
 
-    * Windows: Visual Studio 2019 or later with the "Desktop development with C++" workload is required. The WebView2 runtime is typically pre-installed on modern Windows 10/11 systems.
+    * **Windows:** Visual Studio 2019 or later with the "Desktop development with C++" workload is required. The WebView2 runtime is typically pre-installed on modern Windows 10/11 systems.
 
 ### Build & Run Instructions
 1. Clone the repository:
@@ -71,17 +71,18 @@ cmake --build .
 ```
 5. Run the executable:
 
-    * macOS: The application bundle cryptokaro.app will be in the build directory. You can run it from Finder or use the terminal:
+    * **macOS:** The application bundle cryptokaro.app will be in the build directory. You can run it from Finder or use the terminal:
 
-    `open cryptokaro.app`
+        - `open cryptokaro.app`
 
-    * Linux: The executable cryptokaro will be in the build directory.
+    * **Linux:** The executable cryptokaro will be in the build directory.
 
-    `./cryptokaro`
+        - `./cryptokaro`
 
-    * Windows: The executable cryptokaro.exe will be inside a Debug or Release folder within the build directory.
+    * **Windows:** The executable cryptokaro.exe will be inside a Debug or Release folder within the build directory.
 
 ## Project Structure
+```
 crypto-desktop/
 ├── CMakeLists.txt      # Main build script for the entire project
 ├── config/             # Runtime configuration files (e.g., config.json)
@@ -89,3 +90,4 @@ crypto-desktop/
 ├── include/            # C++ header files (.hpp) for our application logic
 ├── src/                # C++ source files (.cpp) for our application logic
 └── www/                # All frontend assets (HTML, CSS, JS)
+```
