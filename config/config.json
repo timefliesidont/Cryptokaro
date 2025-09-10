@@ -1,0 +1,5 @@
+{
+    "testMessage": "Crypto++ and Webview are integrated!",
+    "aesDefaultKeySize": 32,
+    "aesDefaultIvSize": 16
+}

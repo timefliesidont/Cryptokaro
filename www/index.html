@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoKaro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Left Navigation Bar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h3>CryptoKaro</h3>
+            </div>
+            <ul class="nav-list">
+                <li class="nav-item active" data-page="page-home"><a>Home</a></li>
+                <li class="nav-item" data-page="page-key-gen"><a>Symmetric Key</a></li>
+                <li class="nav-item" data-page="page-aes"><a>AES Encrypt/Decrypt</a></li>
+                <li class="nav-item" data-page="page-sha256"><a>SHA-256 Digest</a></li>
+                <li class="nav-item" data-page="page-hmac"><a>HMAC Digest</a></li>
+            </ul>
+        </nav>
+
+        <!-- Right Content Area -->
+        <main class="content">
+            <!-- Home Page -->
+            <div id="page-home" class="page">
+                <h1>Welcome to CryptoKaro</h1>
+                <p>A simple, secure desktop tool for common cryptographic operations.</p>
+                <p>Select an operation from the menu on the left to get started.</p>
+                <div id="integration-test-area">
+                    <hr>
+                    <p>You can also run the integration test to verify the backend is working.</p>
+                    <button id="test-button">Run C++ Integration Test</button>
+                    <div id="result-display" class="result-box">Awaiting test...</div>
+                </div>
+            </div>
+
+            <!-- Symmetric Key Generation Page -->
+            <div id="page-key-gen" class="page hidden">
+                <h1>Symmetric Key Generation</h1>
+                <p>Generate a cryptographically secure random key for use with AES and HMAC.</p>
+                <button id="generate-key-btn">Generate Key</button>
+                <div class="result-container">
+                    <label for="key-output">Generated Key (Hex):</label>
+                    <textarea id="key-output" readonly placeholder="Your generated key will appear here..."></textarea>
+                    <button id="copy-key-btn" class="copy-btn">Copy</button>
+                </div>
+            </div>
+
+            <!-- AES Page -->
+            <div id="page-aes" class="page hidden">
+                <h1>AES Encryption & Decryption</h1>
+                <p>Encrypt or decrypt data using AES-256. Provide a key or generate one first.</p>
+                <div class="form-group">
+                    <label for="aes-key">Key (Hex):</label>
+                    <input type="text" id="aes-key" placeholder="Enter 64-character hex key">
+                </div>
+                <div class="form-group">
+                    <label for="aes-input">Input Data:</label>
+                    <textarea id="aes-input" placeholder="Enter text or drop a file here..."></textarea>
+                </div>
+                <div class="button-group">
+                    <button id="aes-encrypt-btn">Encrypt</button>
+                    <button id="aes-decrypt-btn">Decrypt</button>
+                </div>
+                <div class="result-container">
+                    <label for="aes-output">Output:</label>
+                    <textarea id="aes-output" readonly placeholder="Result will appear here..."></textarea>
+                    <button id="copy-aes-output-btn" class="copy-btn">Copy</button>
+                    <button id="save-aes-output-btn" class="save-btn">Save to File</button>
+                </div>
+            </div>
+
+            <!-- SHA-256 Page -->
+            <div id="page-sha256" class="page hidden">
+                <h1>SHA-256 Digest</h1>
+                <p>Calculate the SHA-256 hash of text or a file.</p>
+                <div class="form-group">
+                    <label for="sha-input">Input Data:</label>
+                    <textarea id="sha-input" placeholder="Enter text or drop a file here..."></textarea>
+                </div>
+                <button id="sha-generate-btn">Generate Digest</button>
+                <div class="result-container">
+                    <label for="sha-output">SHA-256 Digest (Hex):</label>
+                    <textarea id="sha-output" readonly placeholder="Result will appear here..."></textarea>
+                    <button id="copy-sha-output-btn" class="copy-btn">Copy</button>
+                </div>
+            </div>
+            
+            <!-- HMAC Page -->
+            <div id="page-hmac" class="page hidden">
+                <h1>HMAC-SHA256 Digest</h1>
+                <p>Calculate a Hash-based Message Authentication Code.</p>
+                 <div class="form-group">
+                    <label for="hmac-key">Key (Hex):</label>
+                    <input type="text" id="hmac-key" placeholder="Enter hex key">
+                </div>
+                <div class="form-group">
+                    <label for="hmac-input">Input Data:</label>
+                    <textarea id="hmac-input" placeholder="Enter text or drop a file here..."></textarea>
+                </div>
+                <button id="hmac-generate-btn">Generate HMAC</button>
+                <div class="result-container">
+                    <label for="hmac-output">HMAC Digest (Hex):</label>
+                    <textarea id="hmac-output" readonly placeholder="Result will appear here..."></textarea>
+                     <button id="copy-hmac-output-btn" class="copy-btn">Copy</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
+
