@@ -189,6 +189,11 @@ button:hover {
     background-color: #45475a;
 }
 
+.copy-btn.error {
+    background-color: #e53e3e; /* A reddish error color */
+    color: white;
+}
+
 /* --- Result & Status Boxes --- */
 .result-box {
     margin-top: 20px;

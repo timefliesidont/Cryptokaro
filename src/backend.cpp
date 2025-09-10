@@ -40,6 +40,11 @@ std::string invoke(const std::string& raw_req) {
         else if (operation == "hmac") {
             response = perform_hmac_digest(payload);
         }
+        else if (operation == "aesEncrypt") { // <-- NEW: AES Encrypt Route
+            response = perform_aes_encryption(payload);
+        } else if (operation == "aesDecrypt") { // <-- NEW: AES Decrypt Route
+            response = perform_aes_decryption(payload);
+        }
         // TODO: Add other operations (aes, keygen, hmac) here in the future
         else {
             throw std::runtime_error("Unknown operation: " + operation);

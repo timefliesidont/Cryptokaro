@@ -1,17 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- GENERIC HELPER FUNCTIONS ---
+    // NEW: A simple state object to share data between pages
+    const appState = {
+        currentKey: null,
+    };
 
-    /**
-     * A centralized function to communicate with the C++ backend.
-     * @param {string} operation - The command to execute (e.g., 'sha256').
-     * @param {object} payload - The data to send with the command.
-     * @returns {Promise<object>} - The parsed JSON response from the backend.
-     */
-async function invokeAPI(operation, payload = {}) {
+    // --- GENERIC HELPER FUNCTIONS ---
+    async function invokeAPI(operation, payload = {}) {
         try {
             const request = { operation, payload };
-            // The webview library handles JSON conversion automatically.
             const response = await window.invoke(request);
             return response;
         } catch (error) {
@@ -20,31 +17,29 @@ async function invokeAPI(operation, payload = {}) {
         }
     }
 
-    /**
-     * Copies the content of a given textarea or input element to the clipboard.
-     * @param {string} elementId - The ID of the element to copy from.
-     * @param {HTMLElement} button - The button element that was clicked.
-     */
-    function copyToClipboard(elementId, button) {
-        const element = document.getElementById(elementId);
-        if (element && element.value) {
-            element.select();
-            // This method is more reliable in the webview environment
-            document.execCommand('copy');
-            const originalText = button.textContent;
-            button.textContent = 'Copied!';
-            setTimeout(() => {
-                button.textContent = originalText;
-            }, 1500);
+    // Note: copyToClipboard is no longer used by the Key Gen page,
+    // but we'll leave it for the other pages.
+    function copyToClipboard(element, button) {
+        if (!element || !element.value) return;
+        element.select();
+        element.setSelectionRange(0, 99999);
+        try {
+            if (document.execCommand('copy')) {
+                button.textContent = 'Copied!';
+            } else {
+                button.textContent = 'Copy Failed!';
+            }
+        } catch (err) {
+            console.error('Copy command failed:', err);
+            button.textContent = 'Copy Failed!';
         }
+        const originalText = button.textContent;
+        setTimeout(() => {
+            button.textContent = "Copy"; // Reset to a generic "Copy"
+        }, 2000);
     }
 
-
-    // --- PAGE-SPECIFIC SETUP FUNCTIONS ---
-
-    /**
-     * Sets up navigation logic to show/hide pages.
-     */
+    // --- PAGE INITIALIZATION ---
     function setupNavigation() {
         const navItems = document.querySelectorAll('.nav-item');
         const pages = document.querySelectorAll('.page');
@@ -64,13 +59,9 @@ async function invokeAPI(operation, payload = {}) {
             item.addEventListener('click', () => showPage(item.dataset.page));
         });
 
-        // Show the initial page
         showPage('page-home');
     }
 
-    /**
-     * Sets up the Home page, including the integration test.
-     */
     function setupHomePage() {
         const runButton = document.getElementById('test-button');
         const resultDisplay = document.getElementById('result-display');
@@ -86,91 +77,145 @@ async function invokeAPI(operation, payload = {}) {
         });
     }
 
-    /**
-     * Sets up the Symmetric Key Generation page.
-     */
+    // =========================================================================
+    // UPDATED KEY GENERATION LOGIC
+    // =========================================================================
     function setupKeyGenPage() {
         const generateBtn = document.getElementById('generate-key-btn');
-        const copyBtn = document.getElementById('copy-key-btn');
         const keyOutput = document.getElementById('key-output');
+        const copyBtn = document.getElementById('copy-key-btn');
+        // Get references to the other pages' input fields
+        const hmacKeyInput = document.getElementById('hmac-key');
+        const aesKeyInput = document.getElementById('aes-key');
 
         generateBtn.addEventListener('click', async () => {
-            keyOutput.value = 'Generating secure key...';
+            const originalText = generateBtn.textContent;
+            keyOutput.value = 'Generating...';
+            generateBtn.disabled = true;
+
             const response = await invokeAPI('generateKey');
+            
             if (response.status === 'success') {
-                keyOutput.value = response.key;
+                const newKey = response.key;
+                keyOutput.value = newKey;
+                
+                // 1. Update the shared state
+                appState.currentKey = newKey;
+
+                // 2. Automatically populate the key in other sections
+                if (hmacKeyInput) hmacKeyInput.value = newKey;
+                if (aesKeyInput) aesKeyInput.value = newKey;
+
+                // 3. Provide user feedback
+                generateBtn.textContent = 'Key Populated!';
+
             } else {
                 keyOutput.value = `Error: ${response.error}`;
+                generateBtn.textContent = 'Generation Failed!';
             }
+            
+            setTimeout(() => {
+                generateBtn.textContent = originalText;
+                generateBtn.disabled = false;
+            }, 2000);
         });
 
-        copyBtn.addEventListener('click', () => {
-            if (keyOutput.value && !keyOutput.value.startsWith('Error')) {
-                copyToClipboard(keyOutput.value);
-                // Optional: Provide user feedback
-                const originalText = copyBtn.textContent;
-                copyBtn.textContent = 'Copied!';
-                setTimeout(() => { copyBtn.textContent = originalText; }, 1500);
-            }
-        });
+        // The copy button on this page can still be used as a backup
+        copyBtn.addEventListener('click', () => copyToClipboard(keyOutput, copyBtn));
     }
-    
-    /**
-     * Sets up the AES Encrypt/Decrypt page.
-     */
+    // =========================================================================
     function setupAesPage() {
+        const keyInput = document.getElementById('aes-key');
+        const dataInput = document.getElementById('aes-input');
         const encryptBtn = document.getElementById('aes-encrypt-btn');
         const decryptBtn = document.getElementById('aes-decrypt-btn');
-        const aesOutput = document.getElementById('aes-output');
+        const outputArea = document.getElementById('aes-output');
         const copyBtn = document.getElementById('copy-aes-output-btn');
-        const saveBtn = document.getElementById('save-aes-output-btn');
+        // The save button is in the HTML, but requires native file dialogs which is
+        // beyond the scope of this simple webview setup. We will not wire it up.
+        // const saveBtn = document.getElementById('save-aes-output-btn');
 
-        encryptBtn.addEventListener('click', () => {
-            aesOutput.value = "Encryption is not yet implemented.";
+        encryptBtn.addEventListener('click', async () => {
+            const key = keyInput.value;
+            const textInput = dataInput.value;
+            if (!key || !textInput) {
+                outputArea.value = 'Error: Key and Input Data are required.';
+                return;
+            }
+            outputArea.value = "Encrypting...";
+            const response = await invokeAPI('aesEncrypt', { key, textInput });
+
+            if (response.status === 'success') {
+                // Format the output as a pretty-printed JSON object.
+                // This is both human-readable and machine-parseable for decryption.
+                const result = {
+                    iv: response.iv,
+                    ciphertext: response.ciphertext
+                };
+                outputArea.value = JSON.stringify(result, null, 2);
+            } else {
+                outputArea.value = `Error: ${response.error}`;
+            }
         });
 
-        decryptBtn.addEventListener('click', () => {
-            aesOutput.value = "Decryption is not yet implemented.";
-        });
+        decryptBtn.addEventListener('click', async () => {
+            const key = keyInput.value;
+            const textInput = dataInput.value;
+            if (!key || !textInput) {
+                outputArea.value = 'Error: Key and Input Data are required.';
+                return;
+            }
 
-        copyBtn.addEventListener('click', () => copyToClipboard('aes-output', copyBtn));
+            outputArea.value = "Decrypting...";
+            try {
+                // We expect the input data to be the JSON object we created during encryption
+                const inputData = JSON.parse(textInput);
+                if (!inputData.iv || !inputData.ciphertext) {
+                    throw new Error("Input for decryption must be a JSON object with 'iv' and 'ciphertext' keys.");
+                }
 
-        saveBtn.addEventListener('click', () => {
-            alert("Save-to-file is not yet implemented.");
+                const response = await invokeAPI('aesDecrypt', {
+                    key,
+                    iv: inputData.iv,
+                    ciphertext: inputData.ciphertext
+                });
+
+                if (response.status === 'success') {
+                    outputArea.value = response.plaintext;
+                } else {
+                    outputArea.value = `Error: ${response.error}`;
+                }
+            } catch (e) {
+                outputArea.value = `Error: Invalid input format for decryption. ${e.message}`;
+            }
         });
+        
+        copyBtn.addEventListener('click', () => copyToClipboard(outputArea, copyBtn));
     }
 
-    /**
-     * Sets up the SHA-256 Digest page.
-     */
     function setupSha256Page() {
         const generateBtn = document.getElementById('sha-generate-btn');
-        const shaInput = document.getElementById('sha-input');
-        const shaOutput = document.getElementById('sha-output');
+        const textInput = document.getElementById('sha-input');
+        const resultOutput = document.getElementById('sha-output');
         const copyBtn = document.getElementById('copy-sha-output-btn');
 
         generateBtn.addEventListener('click', async () => {
-            const textToHash = shaInput.value;
-            if (!textToHash) {
-                shaOutput.value = 'Please enter some text to hash.';
+            if (!textInput.value) {
+                resultOutput.value = 'Please enter some text to hash.';
                 return;
             }
-            shaOutput.value = 'Generating digest...';
-            const response = await invokeAPI('sha256', { textInput: textToHash });
-
+            resultOutput.value = 'Generating...';
+            const response = await invokeAPI('sha256', { textInput: textInput.value });
             if (response.status === 'success') {
-                shaOutput.value = response.digest;
+                resultOutput.value = response.digest;
             } else {
-                shaOutput.value = `Error: ${response.error}`;
+                resultOutput.value = `Error: ${response.error}`;
             }
         });
-
-        copyBtn.addEventListener('click', () => copyToClipboard('sha-output', copyBtn));
+        
+        copyBtn.addEventListener('click', () => copyToClipboard(resultOutput, copyBtn));
     }
 
-    /**
-     * Sets up the HMAC-SHA256 page.
-     */
     function setupHmacPage() {
         const generateBtn = document.getElementById('hmac-generate-btn');
         const keyInput = document.getElementById('hmac-key');
@@ -199,14 +244,13 @@ async function invokeAPI(operation, payload = {}) {
         copyBtn.addEventListener('click', () => copyToClipboard(resultOutput, copyBtn));
     }
 
-
-    // --- INITIALIZATION ---
-    // Run all setup functions to wire up the application.
+    // --- APP STARTUP ---
     setupNavigation();
     setupHomePage();
     setupKeyGenPage();
-    setupAesPage();
     setupSha256Page();
     setupHmacPage();
+    setupAesPage();
+
 });
 

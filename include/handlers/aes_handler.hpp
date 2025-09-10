@@ -1,10 +1,12 @@
-#pragma once
+#ifndef AES_HANDLER_HPP
+#define AES_HANDLER_HPP
+
 #include "nlohmann/json.hpp"
 
-// Performs AES encryption.
-// The request object must contain the data to encrypt and the key.
-nlohmann::json handle_aes_encryption(const nlohmann::json& request);
+// Declares the function that will handle AES encryption requests
+nlohmann::json perform_aes_encryption(const nlohmann::json& payload);
 
-// Performs AES decryption.
-// The request object must contain the data to decrypt and the key.
-nlohmann::json handle_aes_decryption(const nlohmann::json& request);
+// Declares the function that will handle AES decryption requests
+nlohmann::json perform_aes_decryption(const nlohmann::json& payload);
+
+#endif // AES_HANDLER_HPP
